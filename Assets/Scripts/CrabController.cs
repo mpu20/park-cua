@@ -12,6 +12,7 @@ public class CrabController : MonoBehaviour
     private Animator animator;
     private Rigidbody2D rb;
     private bool isGrounded;
+    private bool wasGrounded;
     private bool isChargingJump;
     private float jumpCharge;
     private float chargeStartTime;
@@ -30,7 +31,19 @@ public class CrabController : MonoBehaviour
 
         float move = Input.GetAxis("Horizontal") * moveSpeed;
         rb.velocity = new Vector2(move, rb.velocity.y);
-        animator.SetInteger("State", move != 0 ? 1 : 0);
+
+        if (!isGrounded)
+        {
+            animator.SetInteger("State", 2); 
+        }
+        else if (move != 0)
+        {
+            animator.SetInteger("State", 1); 
+        }
+        else
+        {
+            animator.SetInteger("State", 0);
+        }
 
         if (move != 0)
         {
@@ -57,6 +70,13 @@ public class CrabController : MonoBehaviour
                 jumpCharge = 0;
             }
         }
+
+        if (!wasGrounded && isGrounded)
+        {
+            animator.Play("LandingHermitCrabAnimation");
+        }
+
+        wasGrounded = isGrounded;
     }
     private void OnDrawGizmos()
     {
