@@ -7,6 +7,15 @@ public class CrabController : MonoBehaviour
     public float moveSpeed = 5f;
     public float maxJumpForce = 15f;
     public float jumpIncreasing = 0.1f;
+    public PhysicsMaterial2D bounceMaterial, normalMaterial;
+    public float upSpeed = 2.5f;
+    public static bool itemActived = false;
+    public static int activeItemIndex = 1; 
+    public static readonly List<string> items = new()
+    {
+        "None",
+        "AquaShell"
+    };
 
     private Animator animator;
     private Rigidbody2D rb;
@@ -15,7 +24,7 @@ public class CrabController : MonoBehaviour
     private float moveInput;
     private bool canJump = true;
     private float jumpValue = 0f;
-    private float facingDirection = 1f;
+    private float facingDirection = 1f;    
 
     // Start is called before the first frame update
     void Start()
@@ -34,9 +43,21 @@ public class CrabController : MonoBehaviour
         moveInput = Input.GetAxisRaw("Horizontal");
 
         // Handle movement
-        if (jumpValue == 0f && isGrounded)
+        if (jumpValue == 0f && isGrounded && !itemActived)
         {
             rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
+        }
+
+        if (itemActived)
+        {
+            switch (activeItemIndex)
+            {
+                case 1:
+                    rb.velocity = new Vector2(moveInput, upSpeed);
+                    break;
+                default:
+                    break;
+            }
         }
 
         // Update animator states
@@ -60,6 +81,31 @@ public class CrabController : MonoBehaviour
             transform.localScale = new Vector3(facingDirection * Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
         }
 
+        // Change material
+        if (jumpValue > 0)
+        {
+            rb.sharedMaterial = bounceMaterial;
+        }
+        else
+        {
+            rb.sharedMaterial = normalMaterial;
+        }
+
+        // Active item
+        if (Input.GetKey(KeyCode.E) && !itemActived)
+        {
+            switch (activeItemIndex)
+            {
+                case 1:
+                    transform.GetChild(0).GetChild(1).gameObject.SetActive(true);
+                    animator.Play("BubbleCreatingAnimation");
+                    itemActived = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+
         // Handle jump charging
         if (Input.GetKey(KeyCode.Space) && isGrounded && canJump)
         {
@@ -77,7 +123,7 @@ public class CrabController : MonoBehaviour
             Invoke(nameof(ResetJump), 0.1f);
         }
 
-        if (Input.GetKeyUp(KeyCode.Space) )
+        if (Input.GetKeyUp(KeyCode.Space))
         {
             if (isGrounded)
             {
@@ -110,5 +156,14 @@ public class CrabController : MonoBehaviour
         var downDistance = Vector3.down * 0.65f;
         Gizmos.DrawLine(leftPosition, leftPosition + downDistance);
         Gizmos.DrawLine(rightPosition, rightPosition + downDistance);
+    }
+    void DestroyBubble()
+    {
+        var bubbleGameObject = transform.GetChild(0).GetChild(1).gameObject;
+        var bubbleController = bubbleGameObject.GetComponent<BubbleController>();
+        if (bubbleController != null)
+        {
+            bubbleController.DestroyBubble();
+        }
     }
 }
