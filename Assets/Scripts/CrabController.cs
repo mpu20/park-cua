@@ -38,7 +38,8 @@ public class CrabController : MonoBehaviour
     {
         // Check if the character is grounded
         isGrounded = Physics2D.Raycast(transform.position + Vector3.left * 0.6f, Vector2.down, 0.65f, LayerMask.GetMask("Ground")) ||
-                     Physics2D.Raycast(transform.position + Vector3.right * 0.5f, Vector2.down, 0.65f, LayerMask.GetMask("Ground"));
+                     Physics2D.Raycast(transform.position + Vector3.right * 0.5f, Vector2.down, 0.65f, LayerMask.GetMask("Ground")) ||
+                     Physics2D.Raycast(transform.position, Vector2.down, 0.65f, LayerMask.GetMask("Ground")); ;
 
         moveInput = Input.GetAxisRaw("Horizontal");
 
@@ -120,13 +121,15 @@ public class CrabController : MonoBehaviour
         if (jumpValue >= maxJumpForce && isGrounded)
         {
             rb.velocity = new Vector2(facingDirection * moveSpeed, jumpValue);
-            Invoke(nameof(ResetJump), 0.1f);
+            Invoke(nameof(ResetJump), 0.2f);
         }
 
         if (Input.GetKeyUp(KeyCode.Space))
         {
             if (isGrounded)
             {
+
+                Debug.Log("Movespeed:" + moveSpeed);      
                 rb.velocity = new Vector2(facingDirection * moveSpeed, jumpValue);
                 jumpValue = 0f;
             }
