@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,12 +10,16 @@ public class CrabController : MonoBehaviour
     public float jumpIncreasing = 0.1f;
     public PhysicsMaterial2D bounceMaterial, normalMaterial;
     public float upSpeed = 2.5f;
-    public static bool itemActived = false;
-    public static int activeItemIndex = 1; 
+    public float dashingPower = 20f;
+    public float dashingTime = 0.2f;
+    public float dashingCooldown = 1f;
+    public static bool itemActived = true;
+    public static int activeItemIndex = 2;
     public static readonly List<string> items = new()
     {
         "None",
-        "AquaShell"
+        "AquaShell",
+        "WizardShell"
     };
 
     private Animator animator;
@@ -24,7 +29,10 @@ public class CrabController : MonoBehaviour
     private float moveInput;
     private bool canJump = true;
     private float jumpValue = 0f;
-    private float facingDirection = 1f;    
+    private float facingDirection = 1f;
+    private bool canDash = true;
+    private bool isDashing = false;
+    private List<int> alwaysActive = new() { 2 };
 
     // Start is called before the first frame update
     void Start()
@@ -36,77 +44,32 @@ public class CrabController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Check if the character is grounded
+        CheckBeOnGround();
+
+        Move();
+
+        ActiveSkill();
+
+        ChangeAnimation();
+
+        UpdateFacingDirection();
+
+        UpdateMaterial();
+
+        ActiveItem();
+
+        Jump();        
+    }
+
+    private void CheckBeOnGround()
+    {
         isGrounded = Physics2D.Raycast(transform.position + Vector3.left * 0.6f, Vector2.down, 0.65f, LayerMask.GetMask("Ground")) ||
-                     Physics2D.Raycast(transform.position + Vector3.right * 0.5f, Vector2.down, 0.65f, LayerMask.GetMask("Ground"));
+                     Physics2D.Raycast(transform.position + Vector3.right * 0.5f, Vector2.down, 0.65f, LayerMask.GetMask("Ground")) ||
+                     Physics2D.Raycast(transform.position, Vector2.down, 0.65f, LayerMask.GetMask("Ground"));
+    }
 
-        moveInput = Input.GetAxisRaw("Horizontal");
-
-        // Handle movement
-        if (jumpValue == 0f && isGrounded && !itemActived)
-        {
-            rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
-        }
-
-        if (itemActived)
-        {
-            switch (activeItemIndex)
-            {
-                case 1:
-                    rb.velocity = new Vector2(moveInput, upSpeed);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        // Update animator states
-        if (!isGrounded)
-        {
-            animator.SetInteger("State", 2); // Jumping state
-        }
-        else if (moveInput != 0)
-        {
-            animator.SetInteger("State", 1); // Walking state
-        }
-        else
-        {
-            animator.SetInteger("State", 0); // Idle state
-        }
-
-        // Update facing direction
-        if (moveInput != 0)
-        {
-            facingDirection = Mathf.Sign(moveInput);
-            transform.localScale = new Vector3(facingDirection * Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
-        }
-
-        // Change material
-        if (jumpValue > 0)
-        {
-            rb.sharedMaterial = bounceMaterial;
-        }
-        else
-        {
-            rb.sharedMaterial = normalMaterial;
-        }
-
-        // Active item
-        if (Input.GetKey(KeyCode.E) && !itemActived)
-        {
-            switch (activeItemIndex)
-            {
-                case 1:
-                    transform.GetChild(0).GetChild(1).gameObject.SetActive(true);
-                    animator.Play("BubbleCreatingAnimation");
-                    itemActived = true;
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        // Handle jump charging
+    private void Jump()
+    {
         if (Input.GetKey(KeyCode.Space) && isGrounded && canJump)
         {
             jumpValue += jumpIncreasing;
@@ -120,7 +83,7 @@ public class CrabController : MonoBehaviour
         if (jumpValue >= maxJumpForce && isGrounded)
         {
             rb.velocity = new Vector2(facingDirection * moveSpeed, jumpValue);
-            Invoke(nameof(ResetJump), 0.1f);
+            Invoke(nameof(ResetJump), 0.2f);
         }
 
         if (Input.GetKeyUp(KeyCode.Space))
@@ -132,6 +95,64 @@ public class CrabController : MonoBehaviour
             }
             canJump = true;
         }
+    }
+
+    private void ActiveItem()
+    {
+        if (Input.GetKey(KeyCode.E) && !itemActived)
+        {
+            switch (activeItemIndex)
+            {
+                case 1:
+                    transform.GetChild(0).GetChild(1).gameObject.SetActive(true);
+                    animator.Play("BubbleCreatingAnimation");
+                    itemActived = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void UpdateMaterial()
+    {
+        if (jumpValue > 0)
+        {
+            rb.sharedMaterial = bounceMaterial;
+        }
+        else
+        {
+            rb.sharedMaterial = normalMaterial;
+        }
+    }
+
+    private void UpdateFacingDirection()
+    {
+        if (moveInput != 0 && isGrounded)
+        {
+            facingDirection = Mathf.Sign(moveInput);
+            transform.localScale = new Vector3(facingDirection * Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        }
+    }
+
+    private void ChangeAnimation()
+    {
+        if (isDashing)
+        {
+            animator.SetInteger("State", 3); // Dashing state
+        }
+        else if (!isGrounded)
+        {
+            animator.SetInteger("State", 2); // Jumping state
+        }
+        else if (moveInput != 0)
+        {
+            animator.SetInteger("State", 1); // Walking state
+        }
+        else
+        {
+            animator.SetInteger("State", 0); // Idle state
+        }
 
         // Play landing animation
         if (!wasGrounded && isGrounded)
@@ -142,10 +163,55 @@ public class CrabController : MonoBehaviour
         wasGrounded = isGrounded;
     }
 
+    private void Move()
+    {
+        moveInput = Input.GetAxisRaw("Horizontal");
+
+        if (jumpValue == 0f && isGrounded && (!itemActived || alwaysActive.Contains(activeItemIndex)))
+        {
+            rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
+        }
+    }
+
+    private void ActiveSkill()
+    {
+        if (itemActived)
+        {
+            switch (activeItemIndex)
+            {
+                case 1:
+                    rb.velocity = new Vector2(moveInput, upSpeed);
+                    break;
+                case 2:
+                    if (Input.GetKeyDown(KeyCode.LeftShift) && canDash)
+                    {
+                        StartCoroutine(Dash());
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     void ResetJump()
     {
         canJump = false;
         jumpValue = 0f;
+    }
+
+    private IEnumerator Dash()
+    {
+        canDash = false;
+        isDashing = true;
+        var originGravity = rb.gravityScale;
+        rb.gravityScale = 0;
+        rb.velocity = new Vector2(facingDirection * dashingPower, 0f);
+        yield return new WaitForSeconds(dashingTime);
+        isDashing = false;
+        rb.gravityScale = originGravity;
+        yield return new WaitForSeconds(dashingCooldown);
+        canDash = true;
     }
 
     private void OnDrawGizmos()
