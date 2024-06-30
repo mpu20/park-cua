@@ -1,3 +1,4 @@
+using Cinemachine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ public class CrabController : MonoBehaviour
     public float dashingPower = 20f;
     public float dashingTime = 0.2f;
     public float dashingCooldown = 1f;
+    public CinemachineVirtualCamera cinemachineCamera;
     public static bool itemActived = true;
     public static int activeItemIndex = 2;
     public static readonly List<string> items = new()
@@ -207,9 +209,17 @@ public class CrabController : MonoBehaviour
         var originGravity = rb.gravityScale;
         rb.gravityScale = 0;
         rb.velocity = new Vector2(facingDirection * dashingPower, 0f);
+        if (cinemachineCamera != null)
+        {
+            cinemachineCamera.Follow = null;
+        }
         yield return new WaitForSeconds(dashingTime);
         isDashing = false;
         rb.gravityScale = originGravity;
+        if (cinemachineCamera != null)
+        {
+            cinemachineCamera.Follow = transform;
+        }
         yield return new WaitForSeconds(dashingCooldown);
         canDash = true;
     }
