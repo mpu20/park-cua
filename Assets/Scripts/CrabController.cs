@@ -10,6 +10,9 @@ public class CrabController : MonoBehaviour
     public float maxJumpForce = 15f;
     public float jumpIncreasing = 0.1f;
     public PhysicsMaterial2D bounceMaterial, normalMaterial;
+    public Vector2 boxSize;
+    public float castDistance;
+    public float offsetRayCast;                    
 
     private Animator animator;
     private Rigidbody2D rb;
@@ -45,9 +48,7 @@ public class CrabController : MonoBehaviour
 
     private void CheckBeOnGround()
     {
-        isGrounded = Physics2D.Raycast(transform.position + Vector3.left * 0.6f, Vector2.down, 0.65f, LayerMask.GetMask("Ground")) ||
-                     Physics2D.Raycast(transform.position + Vector3.right * 0.5f, Vector2.down, 0.65f, LayerMask.GetMask("Ground")) ||
-                     Physics2D.Raycast(transform.position, Vector2.down, 0.65f, LayerMask.GetMask("Ground"));
+        isGrounded = Physics2D.BoxCast(transform.position + transform.right * offsetRayCast, boxSize, 0, -transform.up, castDistance, LayerMask.GetMask("Ground"));
     }
 
     private void Jump()
@@ -65,7 +66,7 @@ public class CrabController : MonoBehaviour
         if (jumpValue >= maxJumpForce && isGrounded)
         {
             rb.velocity = new Vector2(facingDirection * moveSpeed, jumpValue);
-            Invoke(nameof(ResetJump), 0.2f);
+            ResetJump();
         }
 
         if (Input.GetKeyUp(KeyCode.Space))
@@ -81,7 +82,7 @@ public class CrabController : MonoBehaviour
 
     private void UpdateMaterial()
     {
-        if (!isGrounded)
+        if (jumpValue == 0 && !isGrounded)
         {
             rb.sharedMaterial = bounceMaterial;
         }
@@ -143,10 +144,6 @@ public class CrabController : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        var leftPosition = transform.position + Vector3.left * 0.6f;
-        var rightPosition = transform.position + Vector3.right * 0.5f;
-        var downDistance = Vector3.down * 0.65f;
-        Gizmos.DrawLine(leftPosition, leftPosition + downDistance);
-        Gizmos.DrawLine(rightPosition, rightPosition + downDistance);
+        Gizmos.DrawWireCube(transform.position + transform.right * offsetRayCast - transform.up * castDistance, boxSize);
     }
 }
