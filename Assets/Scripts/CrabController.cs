@@ -10,19 +10,6 @@ public class CrabController : MonoBehaviour
     public float maxJumpForce = 15f;
     public float jumpIncreasing = 0.1f;
     public PhysicsMaterial2D bounceMaterial, normalMaterial;
-    public float upSpeed = 2.5f;
-    public float dashingPower = 20f;
-    public float dashingTime = 0.2f;
-    public float dashingCooldown = 1f;
-    public CinemachineVirtualCamera cinemachineCamera;
-    public static bool itemActived = true;
-    public static int activeItemIndex = 2;
-    public static readonly List<string> items = new()
-    {
-        "None",
-        "AquaShell",
-        "WizardShell"
-    };
 
     private Animator animator;
     private Rigidbody2D rb;
@@ -32,9 +19,6 @@ public class CrabController : MonoBehaviour
     private bool canJump = true;
     private float jumpValue = 0f;
     private float facingDirection = 1f;
-    private bool canDash = true;
-    private bool isDashing = false;
-    private List<int> alwaysActive = new() { 2 };
 
     // Start is called before the first frame update
     void Start()
@@ -50,15 +34,11 @@ public class CrabController : MonoBehaviour
 
         Move();
 
-        ActiveSkill();
-
         ChangeAnimation();
 
         UpdateFacingDirection();
 
         UpdateMaterial();
-
-        ActiveItem();
 
         Jump();        
     }
@@ -99,26 +79,9 @@ public class CrabController : MonoBehaviour
         }
     }
 
-    private void ActiveItem()
-    {
-        if (Input.GetKey(KeyCode.E) && !itemActived)
-        {
-            switch (activeItemIndex)
-            {
-                case 1:
-                    transform.GetChild(0).GetChild(1).gameObject.SetActive(true);
-                    animator.Play("BubbleCreatingAnimation");
-                    itemActived = true;
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
     private void UpdateMaterial()
     {
-        if (jumpValue > 0)
+        if (!isGrounded)
         {
             rb.sharedMaterial = bounceMaterial;
         }
@@ -139,11 +102,7 @@ public class CrabController : MonoBehaviour
 
     private void ChangeAnimation()
     {
-        if (isDashing)
-        {
-            animator.SetInteger("State", 3); // Dashing state
-        }
-        else if (!isGrounded)
+        if (!isGrounded)
         {
             animator.SetInteger("State", 2); // Jumping state
         }
@@ -169,30 +128,9 @@ public class CrabController : MonoBehaviour
     {
         moveInput = Input.GetAxisRaw("Horizontal");
 
-        if (jumpValue == 0f && isGrounded && (!itemActived || alwaysActive.Contains(activeItemIndex)))
+        if (jumpValue == 0f && isGrounded)
         {
             rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
-        }
-    }
-
-    private void ActiveSkill()
-    {
-        if (itemActived)
-        {
-            switch (activeItemIndex)
-            {
-                case 1:
-                    rb.velocity = new Vector2(moveInput, upSpeed);
-                    break;
-                case 2:
-                    if (Input.GetKeyDown(KeyCode.LeftShift) && canDash)
-                    {
-                        StartCoroutine(Dash());
-                    }
-                    break;
-                default:
-                    break;
-            }
         }
     }
 
@@ -200,28 +138,6 @@ public class CrabController : MonoBehaviour
     {
         canJump = false;
         jumpValue = 0f;
-    }
-
-    private IEnumerator Dash()
-    {
-        canDash = false;
-        isDashing = true;
-        var originGravity = rb.gravityScale;
-        rb.gravityScale = 0;
-        rb.velocity = new Vector2(facingDirection * dashingPower, 0f);
-        if (cinemachineCamera != null)
-        {
-            cinemachineCamera.Follow = null;
-        }
-        yield return new WaitForSeconds(dashingTime);
-        isDashing = false;
-        rb.gravityScale = originGravity;
-        if (cinemachineCamera != null)
-        {
-            cinemachineCamera.Follow = transform;
-        }
-        yield return new WaitForSeconds(dashingCooldown);
-        canDash = true;
     }
 
     private void OnDrawGizmos()
@@ -232,14 +148,5 @@ public class CrabController : MonoBehaviour
         var downDistance = Vector3.down * 0.65f;
         Gizmos.DrawLine(leftPosition, leftPosition + downDistance);
         Gizmos.DrawLine(rightPosition, rightPosition + downDistance);
-    }
-    void DestroyBubble()
-    {
-        var bubbleGameObject = transform.GetChild(0).GetChild(1).gameObject;
-        var bubbleController = bubbleGameObject.GetComponent<BubbleController>();
-        if (bubbleController != null)
-        {
-            bubbleController.DestroyBubble();
-        }
     }
 }
