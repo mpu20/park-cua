@@ -53,7 +53,7 @@ TextureImporter:
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
-  spriteTessellationDetail: 0
+  spriteTessellationDetail: -1
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
@@ -97,68 +97,10 @@ TextureImporter:
     serializedVersion: 2
     sprites: []
     outline: []
-    physicsShape:
-    - - {x: -256, y: 49}
-      - {x: -256, y: 111}
-      - {x: -226, y: 111}
-      - {x: -221, y: 110}
-      - {x: -221, y: 106}
-      - {x: -226, y: 106}
-      - {x: -226, y: 103}
-      - {x: -224, y: 103}
-      - {x: -224, y: 100}
-      - {x: -222, y: 100}
-      - {x: -222, y: 95}
-      - {x: -214, y: 95}
-      - {x: -214, y: 88}
-      - {x: -216, y: 88}
-      - {x: -216, y: 81}
-      - {x: -218, y: 81}
-      - {x: -218, y: 72}
-      - {x: -209, y: 72}
-      - {x: -209, y: 63}
-      - {x: -206, y: 63}
-      - {x: -205, y: 60}
-      - {x: -204, y: 60}
-      - {x: -203, y: 61}
-      - {x: -196, y: 61}
-      - {x: -195, y: 58}
-      - {x: -192, y: 58}
-      - {x: -191, y: 60}
-      - {x: -183, y: 60}
-      - {x: -182, y: 58}
-      - {x: -169, y: 58}
-      - {x: -169, y: 60}
-      - {x: -161, y: 60}
-      - {x: -161, y: 58}
-      - {x: -156, y: 58}
-      - {x: -156, y: 61}
-      - {x: -149, y: 61}
-      - {x: -148, y: 60}
-      - {x: -147, y: 60}
-      - {x: -146, y: 63}
-      - {x: -143, y: 63}
-      - {x: -143, y: 72}
-      - {x: -134, y: 72}
-      - {x: -134, y: 81}
-      - {x: -136, y: 81}
-      - {x: -136, y: 88}
-      - {x: -138, y: 88}
-      - {x: -138, y: 95}
-      - {x: -130, y: 95}
-      - {x: -130, y: 100}
-      - {x: -128, y: 100}
-      - {x: -128, y: 103}
-      - {x: -126, y: 103}
-      - {x: -126, y: 106}
-      - {x: -131, y: 106}
-      - {x: -131, y: 110}
-      - {x: -126, y: 111}
-      - {x: -97, y: 111}
-      - {x: -97, y: 49}
+    physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    internalID: 0
     vertices: []
     indices: 
     edges: []
