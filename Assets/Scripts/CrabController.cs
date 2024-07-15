@@ -10,17 +10,17 @@ public class CrabController : MonoBehaviour
     public float maxJumpForce = 15f;
     public float jumpIncreasing = 0.1f;
     public PhysicsMaterial2D bounceMaterial, normalMaterial;
-    public Vector2 boxSize;
-    public float castDistance;
-    public float offsetRayCast;                    
+    public Transform groundCheck;
+    public float groundCheckRadius = 0.2f;
+    public LayerMask groundLayer;
+    public float jumpValue = 0f;
 
     private Animator animator;
     private Rigidbody2D rb;
     private bool isGrounded;
     private bool wasGrounded;
     private float moveInput;
-    private bool canJump = true;
-    private float jumpValue = 0f;
+    private bool isCharging = false;
     private float facingDirection = 1f;
 
     // Start is called before the first frame update
@@ -43,40 +43,37 @@ public class CrabController : MonoBehaviour
 
         UpdateMaterial();
 
-        Jump();        
+        Jump();
     }
 
     private void CheckBeOnGround()
     {
-        isGrounded = Physics2D.BoxCast(transform.position + transform.right * offsetRayCast, boxSize, 0, -transform.up, castDistance, LayerMask.GetMask("Ground"));
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
     }
 
     private void Jump()
     {
-        if (Input.GetKey(KeyCode.Space) && isGrounded && canJump)
+        if (isGrounded && Input.GetKeyDown(KeyCode.Space))
+        {
+            isCharging = true;
+            jumpValue = 0f;
+        }
+
+        if (isCharging)
         {
             jumpValue += jumpIncreasing;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded && canJump)
-        {
-            rb.velocity = new Vector2(0f, rb.velocity.y);
-        }
-
-        if (jumpValue >= maxJumpForce && isGrounded)
-        {
-            rb.velocity = new Vector2(facingDirection * moveSpeed, jumpValue);
-            ResetJump();
-        }
-
-        if (Input.GetKeyUp(KeyCode.Space))
-        {
-            if (isGrounded)
+            if (jumpValue > maxJumpForce)
             {
-                rb.velocity = new Vector2(facingDirection * moveSpeed, jumpValue);
-                jumpValue = 0f;
+                jumpValue = maxJumpForce;
             }
-            canJump = true;
+        }
+
+        if (Input.GetKeyUp(KeyCode.Space) && isCharging)
+        {
+            Debug.Log(facingDirection * moveSpeed + " " + jumpValue);
+            rb.velocity = new Vector2(facingDirection * moveSpeed, jumpValue);
+            jumpValue = 0f;
+            isCharging = false;
         }
     }
 
@@ -107,7 +104,7 @@ public class CrabController : MonoBehaviour
         {
             animator.SetInteger("State", 2); // Jumping state
         }
-        else if (moveInput != 0)
+        else if (moveInput != 0 && isCharging)
         {
             animator.SetInteger("State", 1); // Walking state
         }
@@ -135,15 +132,9 @@ public class CrabController : MonoBehaviour
         }
     }
 
-    void ResetJump()
-    {
-        canJump = false;
-        jumpValue = 0f;
-    }
-
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(transform.position + transform.right * offsetRayCast - transform.up * castDistance, boxSize);
+        Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
     }
 }
