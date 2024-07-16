@@ -23,6 +23,8 @@ public class CrabController : MonoBehaviour
     private float moveInput;
     private bool isCharging = false;
     private float facingDirection = 1f;
+    public static bool itemActived = true;
+    public static int activeItemIndex = 2;
 
     private int stepCheck = 1;
     private bool isStage3 = false;
