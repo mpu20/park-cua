@@ -25,7 +25,7 @@ public class CrabController : MonoBehaviour
     private float facingDirection = 1f;
 
     private int stepCheck = 1;
-
+    private bool isStage3 = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -46,7 +46,16 @@ public class CrabController : MonoBehaviour
 
         UpdateMaterial();
 
-        Jump();
+        if(isStage3 == false)
+        {
+            Jump();
+        }
+        else
+        {
+            isStage3 = false;
+            Jump2();
+        }
+
     }
 
     private void CheckBeOnGround()
@@ -70,7 +79,32 @@ public class CrabController : MonoBehaviour
                 jumpValue = maxJumpForce;
             }
         }
+        
+        if (Input.GetKeyUp(KeyCode.Space) && isCharging)
+        {
+            Debug.Log(facingDirection * moveSpeed + " " + jumpValue);           
+            rb.velocity = new Vector2(facingDirection * moveSpeed, jumpValue);
+            jumpValue = 0f;
+            isCharging = false;
+        }
+    }
+    private void Jump2()
+    {
+        if (isGrounded && Input.GetKeyDown(KeyCode.Space))
+        {
+            isCharging = true;
+            jumpValue = 0f;
+        }
 
+        if (isCharging)
+        {
+            jumpValue += jumpIncreasing;
+            if (jumpValue > maxJumpForce)
+            {
+                jumpValue = maxJumpForce;
+            }
+        }
+        
         if (Input.GetKeyUp(KeyCode.Space) && isCharging)
         {
             Debug.Log(facingDirection * moveSpeed + " " + jumpValue);
@@ -149,4 +183,15 @@ public class CrabController : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
     }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.name == "Ground_s3")
+        {
+            Debug.Log("cham tang 3");
+
+            isStage3 = true;
+        }
+
+    }
+
 }
