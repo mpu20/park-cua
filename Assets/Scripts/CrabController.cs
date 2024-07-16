@@ -22,6 +22,8 @@ public class CrabController : MonoBehaviour
     private float moveInput;
     private bool isCharging = false;
     private float facingDirection = 1f;
+    public static bool itemActived = true;
+    public static int activeItemIndex = 2;
 
     // Start is called before the first frame update
     void Start()
