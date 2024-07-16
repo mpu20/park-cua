@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class CrabController : MonoBehaviour
 {
@@ -22,6 +23,8 @@ public class CrabController : MonoBehaviour
     private float moveInput;
     private bool isCharging = false;
     private float facingDirection = 1f;
+
+    private int stepCheck = 1;
 
     // Start is called before the first frame update
     void Start()
@@ -71,9 +74,18 @@ public class CrabController : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Space) && isCharging)
         {
             Debug.Log(facingDirection * moveSpeed + " " + jumpValue);
+            if(stepCheck == 1)
+            {
+                jumpValue += jumpValue * Random.Range(5, 20) / 100;
+            }
+            else
+            {
+                jumpValue -= jumpValue * Random.Range(5, 20) / 100;
+            }
             rb.velocity = new Vector2(facingDirection * moveSpeed, jumpValue);
             jumpValue = 0f;
             isCharging = false;
+            stepCheck *= -1;
         }
     }
 
